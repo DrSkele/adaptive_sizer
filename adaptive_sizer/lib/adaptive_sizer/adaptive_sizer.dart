@@ -4,8 +4,16 @@ import 'package:flutter/material.dart';
 
 part 'sizer_extension.dart';
 
+enum AdaptOption {
+  auto,
+  respectWidth,
+  respectHeight,
+}
+
 class SizeInfo {
   static bool _initialized = false;
+
+  static late final AdaptOption _option;
 
   ///respective device size on design
   static late final Size referenceSize;
@@ -24,14 +32,15 @@ class SizeInfo {
   static late final double pixelRatio;
 
   ///device aspect ratio over reference aspect ratio </br>
-  ///ratio smaller than 1 : match WIDTH </br>
-  ///ratio larget than 1 : match HEIGHT
+  ///ratio smaller than 1 : respect WIDTH </br>
+  ///ratio larget than 1 : respect HEIGHT
   static double get ratio => SizeInfo.deviceRatio / SizeInfo.referenceRatio;
 
   static void _setSizeInfo({
     required Size referenceScreenSize,
     required Size deviceScreenSize,
     required double screenPixelRatio,
+    required AdaptOption option,
   }) {
     if (_initialized) return;
 
@@ -43,6 +52,7 @@ class SizeInfo {
 
     pixelRatio = screenPixelRatio;
 
+    _option = option;
     _initialized = true;
   }
 }
@@ -52,8 +62,10 @@ class AdaptiveSizeBuilder extends StatelessWidget {
     super.key,
     required this.referenceSize,
     required this.builder,
+    this.option = AdaptOption.auto,
   });
 
+  final AdaptOption option;
   final Size referenceSize;
   final Widget Function(BuildContext context) builder;
 
@@ -64,6 +76,7 @@ class AdaptiveSizeBuilder extends StatelessWidget {
         referenceScreenSize: referenceSize,
         deviceScreenSize: Size(constraints.maxWidth, constraints.maxHeight),
         screenPixelRatio: WidgetsBinding.instance.window.devicePixelRatio,
+        option: option,
       );
       return Builder(builder: builder);
     });
